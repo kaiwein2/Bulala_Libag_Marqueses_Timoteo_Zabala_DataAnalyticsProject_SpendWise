@@ -105,6 +105,12 @@ app_css <- "
 		background: rgba(255,255,255,0.14);
 		backdrop-filter: blur(10px);
 	}
+	.brand-text {
+		color: #ffffff;
+		font-weight: 900;
+		font-size: 1.05rem;
+		margin-left: 8px;
+	}
 	.nav-stack .nav-link {
 		color: rgba(255,255,255,0.82);
 		border-radius: 14px;
@@ -154,6 +160,7 @@ app_css <- "
 		font-size: 0.82rem;
 		margin-top: 8px;
 	}
+
 	.summary-card {
 		background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
 		border: 1px solid rgba(148,163,184,0.18);
@@ -401,9 +408,9 @@ ui <- page_sidebar(
 		tags$div(
 			class = "brand-badge",
 			tags$span(class = "brand-mark", icon("wallet")),
-			tags$span("SpendWise")
+			tags$span(class = "brand-text", "SpendWise")
 		),
-		tags$p("Personal Financial Analytics and Budget Prediction System", style = "color: rgba(255,255,255,0.78); margin-bottom: 22px; line-height: 1.5;"),
+		tags$p("Personal spending overview and simple forecast", style = "color: rgba(255,255,255,0.78); margin-bottom: 22px; line-height: 1.5;"),
 		div(
 			class = "nav-stack",
 			sidebar_button("dashboard", nav_items$dashboard),
@@ -418,8 +425,7 @@ ui <- page_sidebar(
 			style = "margin-top: 18px; background: rgba(255,255,255,0.96); color: #0f172a;",
 			h4("Filters", class = "section-heading"),
 			uiOutput("date_range_ui"),
-			uiOutput("category_ui"),
-			uiOutput("type_ui")
+			uiOutput("category_ui")
 		)
 	),
 	layout_column_wrap(
@@ -432,14 +438,14 @@ ui <- page_sidebar(
 				div(
 					class = "app-shell",
 					div(class = "small-kicker", "Financial Snapshot"),
-					div(class = "page-title", "Personal Financial Analytics and Budget Prediction System"),
-					div(class = "page-subtitle", "Monitor spending behavior, compare categories, and prepare for future budgeting decisions."),
+					div(class = "page-title", "SpendWise: Smart Spending Analytics and Budget Prediction System"),
+					div(class = "page-subtitle", "See your spending at a glance."),
 					layout_column_wrap(
 						width = 1 / 4,
 						metric_card("Total Transactions", textOutput("total_transactions", inline = TRUE)),
 						metric_card("Total Expenses", textOutput("total_expenses", inline = TRUE)),
-						metric_card("Average Transaction Amount", textOutput("average_amount", inline = TRUE)),
-						metric_card("Highest Spending Category", textOutput("highest_category", inline = TRUE))
+						metric_card("Average Transaction", textOutput("average_amount", inline = TRUE)),
+						metric_card("Top Category", textOutput("highest_category", inline = TRUE))
 					),
 					div(class = "panel-card", plotOutput("bar_category", height = "340px")),
 					layout_columns(
@@ -456,13 +462,13 @@ ui <- page_sidebar(
 					class = "app-shell",
 					div(class = "small-kicker", "Transaction Table"),
 					div(class = "page-title", "Transactions Overview"),
-					div(class = "page-subtitle", "A concise summary of the filtered transactions with a compact, presentation-ready table."),
+					div(class = "page-subtitle", "View and export filtered transactions."),
 					div(
 						class = "transaction-grid",
-						metric_card("Filtered Records", textOutput("transactions_count", inline = TRUE), "Rows currently visible in the active slice"),
-						metric_card("Total Spending", textOutput("transactions_total_spend", inline = TRUE), "Aggregate amount in the current filter set"),
-						metric_card("Average Amount", textOutput("transactions_avg_amount", inline = TRUE), "Average transaction size"),
-						metric_card("Top Category", textOutput("transactions_top_category", inline = TRUE), "Highest spending category in the current view")
+						metric_card("Filtered Records", textOutput("transactions_count", inline = TRUE), "Rows shown"),
+						metric_card("Total Spending", textOutput("transactions_total_spend", inline = TRUE), "Total spending (filtered)"),
+						metric_card("Average Amount", textOutput("transactions_avg_amount", inline = TRUE), "Average transaction"),
+						metric_card("Top Category", textOutput("transactions_top_category", inline = TRUE), "Top spending category")
 					),
 					div(
 						class = "transactions-layout",
@@ -476,10 +482,10 @@ ui <- page_sidebar(
 							h4("Quick Insights", class = "section-heading"),
 							tags$ul(
 								class = "transaction-list",
-									tags$li("The table is filtered by the sidebar controls and updates immediately when the date range or category changes."),
-									tags$li("Use the summary cards to confirm whether the current slice is concentrated in one category or spread across several."),
-									tags$li("This layout is optimized for review and presentation, not chart-heavy exploration."),
-									tags$li("Export the filtered table from the Settings page when you need a presentation or appendix data extract.")
+									tags$li("The table updates when you change the date or category."),
+									tags$li("Use the summary cards to spot concentration in categories."),
+									tags$li("This view is for quick review, not deep charting."),
+									tags$li("Export the filtered table from Settings.")
 							)
 						)
 					)
@@ -491,12 +497,15 @@ ui <- page_sidebar(
 					class = "app-shell",
 					div(class = "small-kicker", "Deep Dive"),
 					div(class = "page-title", "Spending Analysis"),
-					div(class = "page-subtitle", "Use the filters to isolate a period, category, or transaction type."),
+					div(class = "page-subtitle", "Pick a date or category to explore."),
 					layout_column_wrap(
 						width = 1 / 3,
 						div(class = "panel-card", plotOutput("analysis_bar", height = "300px")),
 						div(class = "panel-card", plotOutput("analysis_line", height = "300px")),
-						div(class = "panel-card", plotOutput("analysis_donut", height = "300px"))
+						div(class = "panel-card",
+							div(class = "section-heading", "Spending Share by Category"),
+							plotOutput("analysis_donut", height = "300px")
+						)
 					)
 				)
 			),
@@ -506,7 +515,7 @@ ui <- page_sidebar(
 					class = "app-shell",
 					div(class = "small-kicker", "Forecasting"),
 					div(class = "page-title", "Budget Prediction"),
-					div(class = "page-subtitle", "A simple monthly projection provides an interpretable baseline for budgeting conversations."),
+					div(class = "page-subtitle", "Simple monthly forecast to help plan next month."),
 					layout_column_wrap(
 						width = 1 / 3,
 						metric_card("Projected Next Month", textOutput("projected_budget", inline = TRUE)),
@@ -518,16 +527,15 @@ ui <- page_sidebar(
 			),
 			nav_panel(
 				title = "Reports",
-				div(
-					class = "app-shell",
-					div(class = "small-kicker", "Summary Reports"),
-					div(class = "page-title", "Executive Summary"),
-					div(class = "page-subtitle", "Concise findings for a capstone presentation, built from the active filters."),
 					div(
-						class = "panel-card",
-						uiOutput("report_summary")
+						class = "app-shell",
+						div(class = "small-kicker", "Summary Reports"),
+						div(class = "page-title", "Executive Summary"),
+						div(
+							class = "panel-card",
+							uiOutput("report_summary")
+						)
 					)
-				)
 			),
 			nav_panel(
 				title = "Settings",
@@ -535,11 +543,10 @@ ui <- page_sidebar(
 					class = "app-shell",
 					div(class = "small-kicker", "Configuration"),
 					div(class = "page-title", "Settings"),
-					div(class = "page-subtitle", "Adjust dashboard filters and display preferences."),
+					div(class = "page-subtitle", "Change display and export options."),
 					div(
 						class = "panel-card",
 						h4("Appearance & Preferences", class = "section-heading"),
-						selectInput("settings_currency", "Currency", choices = c("USD", "EUR", "PHP", "JPY"), selected = default_settings$currency, width = "100%"),
 						checkboxInput("round_amounts", "Round amounts in table", value = default_settings$round_amounts),
 						hr(),
 						h4("Defaults & Actions", class = "section-heading"),
@@ -588,7 +595,7 @@ server <- function(input, output, session) {
 	settings_rv$data <- initial_settings
 
 	currency_symbol <- reactive({
-		cur <- if (!is.null(input$settings_currency)) input$settings_currency else settings_rv$data$currency
+		cur <- if (!is.null(isolate(settings_rv$data$currency))) isolate(settings_rv$data$currency) else default_settings$currency
 		switch(cur, USD = "$", EUR = "€", PHP = "₱", JPY = "¥", "$")
 	})
 
@@ -608,10 +615,9 @@ server <- function(input, output, session) {
 
 	observeEvent(input$apply_settings, {
 		new_settings <- list(
-			currency = input$settings_currency,
-			default_range = input$settings_default_range,
-			round_amounts = isTRUE(input$round_amounts)
-		)
+				default_range = input$settings_default_range,
+				round_amounts = isTRUE(input$round_amounts)
+			)
 		settings_rv$data <- new_settings
 		try(saveRDS(settings_rv$data, settings_path), silent = TRUE)
 		showNotification("Settings saved", type = "message")
@@ -776,11 +782,15 @@ server <- function(input, output, session) {
 			coord_polar(theta = "y") +
 			xlim(c(0, 4)) +
 			scale_fill_manual(values = colorRampPalette(c("#dbeafe", "#1d4ed8"))(nrow(data))) +
-			labs(title = "Spending Share by Category") +
+			labs(title = "Spending Share by Category", fill = NULL) +
 			theme_void(base_size = 13) +
 			theme(
-				plot.title = element_text(face = "bold", color = "#0f172a", hjust = 0.5),
-				legend.position = "right"
+				plot.title.position = "plot",
+				plot.title = element_text(face = "bold", color = "#0f172a", hjust = 0.5, margin = margin(b = 12), size = 14),
+				plot.margin = margin(t = 100, r = 40, b = 10, l = 10),
+				legend.position = "right",
+				legend.title = element_blank(),
+				legend.margin = margin(r = 10, l = 10)
 			)
 	})
 
@@ -793,7 +803,7 @@ server <- function(input, output, session) {
 			coord_flip() +
 			scale_fill_manual(values = colorRampPalette(c("#bfdbfe", "#1d4ed8"))(nrow(data))) +
 			scale_y_continuous(labels = currency_formatter()) +
-			labs(title = "Category Spend", x = NULL, y = NULL) +
+			labs(title = "Total Spending by Category", x = NULL, y = NULL) +
 			theme_minimal(base_size = 12) +
 			theme(plot.title = element_text(face = "bold", color = "#0f172a"))
 	})
@@ -809,7 +819,7 @@ server <- function(input, output, session) {
 			geom_line(color = "#1d4ed8", linewidth = 1.1) +
 			geom_smooth(se = FALSE, color = "#93c5fd", linewidth = 0.8, linetype = "dashed") +
 			scale_y_continuous(labels = currency_formatter()) +
-			labs(title = "Trend", x = NULL, y = NULL) +
+			labs(title = "Spending Trend Over Time", x = NULL, y = NULL) +
 			theme_minimal(base_size = 12) +
 			theme(plot.title = element_text(face = "bold", color = "#0f172a"))
 	})
@@ -830,9 +840,12 @@ server <- function(input, output, session) {
 			coord_polar(theta = "y") +
 			xlim(c(0, 4)) +
 			scale_fill_manual(values = colorRampPalette(c("#dbeafe", "#1d4ed8"))(nrow(data))) +
-			labs(title = "Share") +
+			labs(fill = NULL) +
 			theme_void(base_size = 12) +
-			theme(plot.title = element_text(face = "bold", color = "#0f172a", hjust = 0.5))
+			theme(
+				plot.margin = margin(t = 12, r = 30, b = 8, l = 8),
+				legend.title = element_blank()
+			)
 	})
 
 	monthly_series <- reactive({
@@ -964,7 +977,7 @@ server <- function(input, output, session) {
 			),
 			Recommendation = c(
 				"Sufficient for baseline supervised modeling.",
-				"Monthly forecasting is acceptable for a capstone demo.",
+				"Monthly forecasting supports baseline expense forecasting and trend analysis.",
 				"Category features can support segmentation or classification.",
 				"Consider spending anomalies and seasonality features."
 			),
@@ -1020,45 +1033,58 @@ server <- function(input, output, session) {
 					"Useful for setting transaction-level controls"
 				),
 				summary_card(
-					"Model Readiness",
-					if (nrow(data) >= 25 && nrow(monthly_totals) >= 6) "Ready for baseline ML" else "Needs more history",
-					"Assesses whether the current slice is strong enough for a first-pass model"
+					"Forecast Readiness",
+					if (nrow(data) >= 25 && nrow(monthly_totals) >= 6) "Enough data for a basic forecast" else "More history recommended",
+					"Shows if there's enough data for a basic forecast"
 				)
+			)
+		)
+
+		# Objectives panel: align report content to the user's requested objectives
+		objectives_panel <- div(
+			class = "panel-card",
+			div(class = "section-heading", "Report Objectives"),
+			tags$ul(
+				tags$li("Analyze spending patterns."),
+				tags$li("Find top spending categories and trends."),
+				tags$li("Forecast next month's spending."),
+				tags$li("Get simple budgeting insights from charts."),
+				tags$li("Make better financial decisions.")
 			)
 		)
 
 		insight_boxes <- div(
 			class = "panel-card",
-			div(class = "section-heading", "Analytical Findings"),
+			div(class = "section-heading", "Findings"),
 			div(
 				class = "insight-box",
-				h5("Spending Trend Summary"),
+				h5("Spending Trend"),
 				p(trend_text),
 				status_badge(if (trend_tone == "good") "Favorable" else if (trend_tone == "warn") "Watch closely" else "Stable", tone = trend_tone)
 			),
 			div(
 				class = "insight-box",
-				h5("Budget Planning Insights"),
+				h5("Budget Insights"),
 				p(paste0(
-					"The largest category is ", top_category, ", representing ",
+					"Top category: ", top_category, ", representing ",
 					format(round(spend_share, 1), nsmall = 1),
-					"% of filtered spending. Use it as the primary target for budget limits and variance monitoring."
+					"% of filtered spending."
 				)),
-				status_badge(if (spend_share >= 40) "Concentrated spend" else "Balanced mix", tone = if (spend_share >= 40) "warn" else "good")
+				status_badge(if (spend_share >= 40) "Concentrated" else "Balanced", tone = if (spend_share >= 40) "warn" else "good")
 			),
 			div(
 				class = "insight-box",
-				h5("Data Quality and Preprocessing Summary"),
-				p("Raw transaction fields were standardized by trimming category names, fixing obvious spelling variants, parsing dates, and removing invalid rows with missing dates or amounts."),
+				h5("Data Quality"),
+				p("Categories, dates, and amounts were standardized and invalid rows removed."),
 				status_badge("Preprocessing complete", tone = "good")
 			),
 			div(
 				class = "insight-box",
-				h5("Model Readiness Assessment"),
+				h5("Forecast Readiness"),
 				p(if (nrow(data) >= 25 && nrow(monthly_totals) >= 6) {
-					"The current slice is suitable for a baseline model such as regression or simple forecasting, especially for capstone demonstration purposes."
+					"There is enough history for a basic forecast."
 				} else {
-					"The current slice is better for descriptive analysis than modeling; gather more months or more categories before training a stronger predictive model."
+					"More months or more data would improve forecast accuracy."
 				}),
 				status_badge(if (nrow(data) >= 25 && nrow(monthly_totals) >= 6) "Ready" else "Needs more data", tone = if (nrow(data) >= 25 && nrow(monthly_totals) >= 6) "good" else "alert")
 			)
@@ -1066,18 +1092,19 @@ server <- function(input, output, session) {
 
 		final_recommendations <- div(
 			class = "panel-card",
-			div(class = "section-heading", "Final Recommendations"),
+			div(class = "section-heading", "Recommendations"),
 			make_table(recommendation_rows)
 		)
 
 		details_grid <- layout_column_wrap(
 			width = 1 / 2,
 			div(class = "panel-card", div(class = "section-heading", "Data Quality Table"), make_table(quality_rows)),
-			div(class = "panel-card", div(class = "section-heading", "Model Readiness Table"), make_table(model_rows))
+			div(class = "panel-card", div(class = "section-heading", "Forecast Readiness Table"), make_table(model_rows))
 		)
 
 		tags$div(
 			summary_cards,
+			objectives_panel,
 			insight_boxes,
 			details_grid,
 			final_recommendations
